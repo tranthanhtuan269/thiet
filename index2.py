@@ -37,29 +37,16 @@ while i < 45143:
 	if(content):
 		child2 = content.findChildren("td" , {'class': 'h-tbl-border'})
 		for child3 in child2:
-			mysql = 'INSERT INTO `dau_thaus` (`link_detail`) VALUES ('
+			mysql = 'INSERT IGNORE INTO `dau_thaus` (`link_detail`, `status`) VALUES ('
 			big_item = child3.findChildren("p")
 			for sm_item in big_item:
 				if(sm_item.get('title', '') != ''):
 					if(sm_item.find("a" , {'class': 'container-tittle'})):
 						item = sm_item.find("a" , {'class': 'container-tittle'})
-						mysql += '"'+item['href']+'"'
-					# print(sm_item.get('title', 'No title attribute'))
-					# mysql += '"'+sm_item.get('title', 'No title attribute')+'", '
-			# mysql = mysql[0:-2]
-			mysql += ')'
+						mysql += '"'+item['href']+'", '
+			mysql += '1)'
 			print(mysql)
 			mycursor.execute(mysql)
 			mydb.commit()
 			print('--------------------------')
 	i = i + 1
-
-	# with open("copy.html", "w", encoding="utf-8") as f:
-	# 	f.write(str(child2))
-	# for child3 in child2:
-	# 	print (child3.get("src"))
-	# 	urllib.request.urlretrieve(child3.get("src"), "abc.png")
-	# print(children)
-
-	# with open("content.txt", "w", encoding="utf-8") as f:
-	# 	f.write(str(children))

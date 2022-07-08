@@ -37,14 +37,19 @@ while i < 477:
 	if(content):
 		child2 = content.findChildren("td" , {'class': 'h-tbl-border'})
 		for child3 in child2:
-			mysql = 'INSERT INTO `dau_thaus` (`link_detail`) VALUES ('
+			mysql = 'INSERT IGNORE INTO `dau_thaus` (`link_detail`, `tieu_de`, `mo_ta`, `vi_tri`,`uid`, `ngay_dang_tai`, `linh_vuc`, `status`) VALUES ('
 			big_item = child3.findChildren("p")
 			for sm_item in big_item:
 				if(sm_item.get('title', '') != ''):
 					if(sm_item.find("a" , {'class': 'container-tittle'})):
 						item = sm_item.find("a" , {'class': 'container-tittle'})
-						mysql += '"'+item['href']+'"'
-			mysql += ')'
+						mysql += '"'+item['href']+'", '
+					mysql += '"'+sm_item.get('title', 'No title attribute')+'", '
+				else:
+					sm_item.find("span", {'class', 'color-1'})
+					mysql += '"'+sm_item.getText()+'", '
+			# mysql = mysql[0:-2]
+			mysql += '1)'
 			print(mysql)
 			mycursor.execute(mysql)
 			mydb.commit()
