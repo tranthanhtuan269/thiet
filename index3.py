@@ -4,6 +4,7 @@ import sys, threading
 import urllib.request
 from bs4 import BeautifulSoup
 import mysql.connector
+from html import unescape
 
 mydb = mysql.connector.connect(
   host="localhost",
@@ -37,27 +38,50 @@ link = '';
 for x in myresult:
 	link = x[0]
 
+print(link)
 html = scraper.get(link)
+
 source_code = str(html.text)
 soup = BeautifulSoup(source_code, 'html.parser')
-content = soup.find('div',{'id':'tab2'})
+content = soup.findChildren('table',{'class':'t-tbl-detail'})
+
+def html_decode(s):
+    """
+    Returns the ASCII decoded version of the given HTML string. This does
+    NOT remove normal HTML tags like <p>.
+    """
+    htmlCodes = (
+            ("'", '&#39;'),
+            ('"', '&quot;'),
+            ('>', '&gt;'),
+            ('<', '&lt;'),
+            ('&', '&amp;')
+        )
+    for code in htmlCodes:
+        s = s.replace(code[1], code[0])
+    return s
+
 if(content):
-	child2 = content.findChildren("td" , {'class': 'h-tbl-border'})
-	for child3 in child2:
-		mysql = 'INSERT IGNORE INTO `dau_thaus` (`link_detail`, `tieu_de`, `mo_ta`, `vi_tri`,`uid`, `ngay_dang_tai`, `linh_vuc`, `status`) VALUES ('
-		big_item = child3.findChildren("p")
-		for sm_item in big_item:
-			if(sm_item.get('title', '') != ''):
-				if(sm_item.find("a" , {'class': 'container-tittle'})):
-					item = sm_item.find("a" , {'class': 'container-tittle'})
-					mysql += '"'+item['href']+'", '
-				mysql += '"'+sm_item.get('title', 'No title attribute')+'", '
-			else:
-				sm_item.find("span", {'class', 'color-1'})
-				mysql += '"'+sm_item.getText()+'", '
-		# mysql = mysql[0:-2]
-		mysql += '1)'
-		print(mysql)
+	count = 0;
+	mysql = 'UPDATE dau_thaus SET '
+	mysql1 = mysql2 = mysql3 = mysql4 = mysql5 = ''
+	for child in content:
+		if(count == 0):
+			mysql1 = "info1 = '"+html_decode(str(child))+"', "
+		if(count == 1):
+			mysql2 = "info2 = '"+html_decode(str(child))+"', "
+		if(count == 2):
+			mysql3 = "info3 = '"+html_decode(str(child))+"', "
+		if(count == 3):
+			mysql4 = "info4 = '"+html_decode(str(child))+"', status = 2 "
+		count = count + 1
+	mysql5 = " WHERE link_detail = '" + link + "'"
+	if(mysql1 == '' or mysql2 == '' or mysql3 == '' or mysql4 == '' or mysql5 == ''):
+		mysql = 'UPDATE dau_thaus SET status = -2 WHERE link_detail = "' + link + '"'
 		mycursor.execute(mysql)
 		mydb.commit()
-		print('--------------------------')
+	else:
+		mysqlAll = mysql + mysql1 + mysql2 + mysql3 + mysql4 + mysql5
+		mycursor.execute(mysqlAll)
+		mydb.commit()
+	
